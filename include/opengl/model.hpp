@@ -30,17 +30,36 @@ public:
     vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh>    meshes;
     string directory;
+
+    glm::vec3 position;
+    glm::vec3 scale;
+    glm::quat rotation;
+
+    // flip texture when loading
     bool flip;
 
     // constructor, expects a filepath to a 3D model.
-    Model(string const &path, bool flip = false) : flip(flip)
+    Model(string const &path, bool flip = false) : position(glm::vec3(0)), scale(glm::vec3(1)), flip(flip)
     {
         loadModel(path);
+    }
+
+    void rotateAxisAngle(glm::vec3 axis, float angle)
+    {
+        rotation = glm::angleAxis(glm::radians(angle), axis) * rotation;
     }
 
     // draws the model, and thus all its meshes
     void Draw(Shader &shader)
     {
+        // model transformation
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, position);
+        model = glm::scale(model, scale);
+        model = model * glm::mat4_cast(rotation);
+        shader.setMat4("model", model);
+
+        // draw each mesh
         for(unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
     }

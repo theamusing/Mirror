@@ -83,6 +83,8 @@ int main()
     // load models
     // -----------
     Model ourModel("../resources/models/bunny.obj", false);
+    ourModel.scale = glm::vec3(5.0f, 5.0f, 5.0f);
+    ourModel.position = glm::vec3(0.0f, -0.3f, 0.0f);
 
     // generate a light source
     LightManager ourLightManager;
@@ -114,20 +116,8 @@ int main()
         // don't forget to enable shader before setting uniforms
         ourShader.use();
 
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);
-
-        // model transformation
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -0.3f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));	// it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model);
-
-        // set camera position
-        ourShader.setVec3("cameraPos", camera.Position);
+        // set camera info
+        ourShader.setCamera(camera,  (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         // apply light to shader
         ourLightManager.Apply(ourShader);
