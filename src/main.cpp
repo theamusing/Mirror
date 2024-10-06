@@ -9,6 +9,7 @@
 #include <opengl/camera.hpp>
 #include <opengl/model.hpp>
 #include <opengl/light.hpp>
+#include <opengl/reflectPlane.hpp>
 
 #include <iostream>
 
@@ -69,12 +70,18 @@ int main()
         return -1;
     }
 
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    stbi_set_flip_vertically_on_load(true);
-
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // set camera view info
+    // --------------------
+    camera.aspect = (float)SCR_WIDTH / (float)SCR_HEIGHT;
+    camera.near = 0.1f;
+    camera.far = 100.0f;
 
     // build and compile shaders
     // -------------------------
@@ -82,9 +89,17 @@ int main()
 
     // load models
     // -----------
-    Model ourModel("../resources/models/bunny.obj", false);
-    ourModel.scale = glm::vec3(5.0f, 5.0f, 5.0f);
-    ourModel.position = glm::vec3(0.0f, -0.3f, 0.0f);
+    Model ourModel("../resources/models/bunny/bunny.obj", false);
+    ourModel.scale = glm::vec3(8,8,8);
+    ourModel.position = glm::vec3(0.0f, -0.5f, 0.0f);
+
+    // generate mirror
+    // ---------------
+    ReflectPlane mirror("../resources/models/bunny/bunny.obj", glm::vec3(0.0f, 1.0f, 0.0f), false);
+    mirror.model.position = glm::vec3(0.0f, -0.5f, 0.0f);
+    mirror.model.scale = glm::vec3(3.0f, 3.0f, 3.0f);
+    ReflectPlaneManager ourReflectPlaneManager;
+    ourReflectPlaneManager.addReflectPlane(mirror);
 
     // generate a light source
     LightManager ourLightManager;
@@ -92,7 +107,7 @@ int main()
     ourLightManager.addSpotLight(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.6f, 5.0f, 15.0f);
     
     // draw in wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
     // -----------
@@ -110,22 +125,22 @@ int main()
 
         // render
         // ------
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.35f, 0.35f, 0.35f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        
 
-        // don't forget to enable shader before setting uniforms
-        ourShader.use();
-
-        // set camera info
-        ourShader.setCamera(camera,  (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-        // apply light to shader
-        ourLightManager.Apply(ourShader);
 
         // render the model
+        ourShader.use();
+        // apply light to shader
+        ourLightManager.Apply(ourShader);
+        // set camera info
+        ourShader.setCamera(camera);
         ourModel.Draw(ourShader);
 
-
+        // render mirror
+        ourReflectPlaneManager.generateReflection(camera);
+        
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);

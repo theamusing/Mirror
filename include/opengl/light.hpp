@@ -36,7 +36,7 @@ public:
     LightManager()
     {
         // init ambient light
-        ambientLight = glm::vec3(0.05f, 0.1f, 0.1f);
+        ambientLight = glm::vec3(0.5f, 0.5f, 0.5f);
 
         // init directional light
         directionalLight.direction = glm::vec3(-1.0f, 0.0f, 0.0f);

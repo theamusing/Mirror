@@ -108,9 +108,9 @@ public:
     { 
         glUseProgram(ID); 
     }
-    void setCamera(Camera &camera, float aspect, float near = 0.1, float far = 100.0)
+    void setCamera(Camera &camera)
     {
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), aspect, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), camera.aspect, camera.near, camera.far);
         glm::mat4 view = camera.GetViewMatrix();
         setMat4("projection", projection);
         setMat4("view", view);

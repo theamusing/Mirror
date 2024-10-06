@@ -33,12 +33,12 @@ uniform uint GL_Num_SpotLight;
 uniform vec3 GL_AmbientLight;
 uniform DirectionalLight GL_DirectionalLight;
 
-layout(std430, binding=0) buffer GL_PointLight_Buffer
+layout(std430, binding=0) buffer GL_POINTLIGHT_BUFFER
 {
     PointLight GL_PointLight[];
 };
 
-layout(std430, binding=1) buffer GL_SpotLight_Buffer
+layout(std430, binding=1) buffer GL_SPOTLIGHT_BUFFER
 {
     SpotLight GL_SpotLight[];
 };

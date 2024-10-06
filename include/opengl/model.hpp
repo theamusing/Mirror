@@ -39,7 +39,7 @@ public:
     bool flip;
 
     // constructor, expects a filepath to a 3D model.
-    Model(string const &path, bool flip = false) : position(glm::vec3(0)), scale(glm::vec3(1)), flip(flip)
+    Model(string const &path, bool flip = false) : position(glm::vec3(0)), scale(glm::vec3(1)), rotation(glm::quat(1,0,0,0)), flip(flip)
     {
         loadModel(path);
     }
@@ -49,15 +49,20 @@ public:
         rotation = glm::angleAxis(glm::radians(angle), axis) * rotation;
     }
 
-    // draws the model, and thus all its meshes
-    void Draw(Shader &shader)
+    glm::mat4 getModelMatrix()
     {
-        // model transformation
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, position);
         model = glm::scale(model, scale);
         model = model * glm::mat4_cast(rotation);
-        shader.setMat4("model", model);
+        return model;
+    }
+
+    // draws the model, and thus all its meshes
+    void Draw(Shader &shader)
+    {
+        // model transformation
+        shader.setMat4("model", getModelMatrix());
 
         // draw each mesh
         for(unsigned int i = 0; i < meshes.size(); i++)
