@@ -92,12 +92,15 @@ int main()
     Model ourModel("../resources/models/bunny/bunny.obj", false);
     ourModel.scale = glm::vec3(8,8,8);
     ourModel.position = glm::vec3(0.0f, -0.5f, 0.0f);
+    vector<Model> modelList;
+    modelList.push_back(ourModel);
 
     // generate mirror
     // ---------------
-    ReflectPlane mirror("../resources/models/bunny/bunny.obj", glm::vec3(0.0f, 1.0f, 0.0f), false);
-    mirror.model.position = glm::vec3(0.0f, -0.5f, 0.0f);
-    mirror.model.scale = glm::vec3(3.0f, 3.0f, 3.0f);
+    ReflectPlane mirror("../resources/models/mirror/mirror_a.glb", glm::vec3(0.0f, 0.0f, 1.0f), false);
+    mirror.model.position = glm::vec3(0.0f, -0.5f, -1.0f);
+    mirror.model.scale = glm::vec3(0.01f, 0.01f, 0.01f);
+
     ReflectPlaneManager ourReflectPlaneManager;
     ourReflectPlaneManager.addReflectPlane(mirror);
 
@@ -139,7 +142,7 @@ int main()
         ourModel.Draw(ourShader);
 
         // render mirror
-        ourReflectPlaneManager.generateReflection(camera);
+        ourReflectPlaneManager.generateReflection(camera, ourLightManager, modelList);
         
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

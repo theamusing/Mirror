@@ -50,7 +50,6 @@ public:
             std::cout << "ERROR::SCREENQUAD::NO_TEXTURE" << std::endl;
             return;
         }
-        shader.use();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
         shader.setUint("Texture", 0);

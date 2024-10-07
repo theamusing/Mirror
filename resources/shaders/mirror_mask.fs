@@ -6,5 +6,5 @@ uniform uint maskId;
 
 void main()
 {    
-    FragColor = 1;//float(maskId) / 255.0;
+    FragColor = (float(maskId) + 1.0) / 255.0;
 }
