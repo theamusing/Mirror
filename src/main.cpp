@@ -95,14 +95,18 @@ int main()
     vector<Model> modelList;
     modelList.push_back(ourModel);
 
-    // generate mirror
+    // generate mirrors
     // ---------------
-    ReflectPlane mirror("../resources/models/mirror/mirror_a.glb", glm::vec3(0.0f, 0.0f, 1.0f), false);
-    mirror.model.position = glm::vec3(0.0f, -0.5f, -1.0f);
-    mirror.model.scale = glm::vec3(0.01f, 0.01f, 0.01f);
-
     ReflectPlaneManager ourReflectPlaneManager;
-    ourReflectPlaneManager.addReflectPlane(mirror);
+    for(int i = 0; i < 10; i++)
+    {
+        ReflectPlane mirror("../resources/models/mirror/mirror_a.glb", glm::vec3(0.0f, 0.0f, 1.0f), false);
+        float angle = i * 36.0f;
+        mirror.model.position = glm::vec3(-2 * sin(glm::radians(angle)), -0.5f, -2 * cos(glm::radians(angle)));
+        mirror.model.rotateAxisAngle(glm::vec3(0.0f, 1.0f, 0.0f), angle);
+        mirror.model.scale = glm::vec3(0.01f, 0.01f, 0.01f);
+        ourReflectPlaneManager.addReflectPlane(mirror);
+    }
 
     // generate a light source
     LightManager ourLightManager;
