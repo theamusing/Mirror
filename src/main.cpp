@@ -9,6 +9,7 @@
 #include <opengl/camera.hpp>
 #include <opengl/model.hpp>
 #include <opengl/light.hpp>
+#include <opengl/skyBox.hpp>
 #include <opengl/reflectPlane.hpp>
 
 #include <iostream>
@@ -82,10 +83,13 @@ int main()
     camera.aspect = (float)SCR_WIDTH / (float)SCR_HEIGHT;
     camera.near = 0.1f;
     camera.far = 100.0f;
+    camera.resolution = glm::vec2(SCR_WIDTH, SCR_HEIGHT);
 
     // build and compile shaders
     // -------------------------
     Shader ourShader("../resources/shaders/model_lighting.vs", "../resources/shaders/model_lighting.fs");
+    Shader reflectShader("../resources/shaders/mirror.vs", "../resources/shaders/mirror.fs");
+    Shader skyboxShader("../resources/shaders/skybox.vs", "../resources/shaders/skybox.fs");
 
     // load models
     // -----------
@@ -102,9 +106,9 @@ int main()
     {
         ReflectPlane mirror("../resources/models/mirror/mirror_a.glb", glm::vec3(0.0f, 0.0f, 1.0f), false);
         float angle = i * 36.0f;
-        mirror.model.position = glm::vec3(-2 * sin(glm::radians(angle)), -0.5f, -2 * cos(glm::radians(angle)));
+        mirror.model.position = glm::vec3(-3 * sin(glm::radians(angle)), -0.5f, -3 * cos(glm::radians(angle)));
         mirror.model.rotateAxisAngle(glm::vec3(0.0f, 1.0f, 0.0f), angle);
-        mirror.model.scale = glm::vec3(0.01f, 0.01f, 0.01f);
+        mirror.model.scale = glm::vec3(0.02f, 0.02f, 0.02f);
         ourReflectPlaneManager.addReflectPlane(mirror);
     }
 
@@ -112,7 +116,18 @@ int main()
     LightManager ourLightManager;
     ourLightManager.addPointLight(glm::vec3(2.0f, 0.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f);
     ourLightManager.addSpotLight(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.6f, 5.0f, 15.0f);
-    
+
+    // generate skybox
+    SkyBox ourSkyBox;
+    ourSkyBox.loadTexture({
+        "../resources/textures/skybox/right.jpg",
+        "../resources/textures/skybox/left.jpg",
+        "../resources/textures/skybox/top.jpg",
+        "../resources/textures/skybox/bottom.jpg",
+        "../resources/textures/skybox/front.jpg",
+        "../resources/textures/skybox/back.jpg"
+    }, false);
+
     // draw in wireframe
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -134,20 +149,26 @@ int main()
         // ------
         glClearColor(0.35f, 0.35f, 0.35f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        
-
 
         // render the model
         ourShader.use();
-        // apply light to shader
-        ourLightManager.Apply(ourShader);
-        // set camera info
+        ourLightManager.Attach(ourShader);
         ourShader.setCamera(camera);
         ourModel.Draw(ourShader);
 
         // render mirror
         ourReflectPlaneManager.generateReflection(camera, ourLightManager, modelList);
-        
+        reflectShader.use();
+        ourLightManager.Attach(reflectShader);
+        ourSkyBox.Attach(reflectShader, 0);
+        reflectShader.setCamera(camera);
+        ourReflectPlaneManager.Draw(reflectShader, 1);
+
+        // render skybox
+        skyboxShader.use();
+        skyboxShader.setCamera(camera);
+        ourSkyBox.Draw(skyboxShader);
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);

@@ -30,8 +30,8 @@ class ReflectPlane
 public:
     Model model;
 
-    ReflectPlane(string const &path, glm::vec3 normal, bool flip = false) : model(path, flip), baseNormal(glm::normalize(normal)) {}
-    ReflectPlane(string const &path, bool flip = false) : model(path, flip)
+    ReflectPlane(string const &path, glm::vec3 normal, bool flip = true) : model(path, flip), baseNormal(glm::normalize(normal)) {}
+    ReflectPlane(string const &path, bool flip = true) : model(path, flip)
     {
         // calculate normal
         if (model.meshes.size() == 0 || model.meshes[0].vertices.size() == 0)
@@ -49,9 +49,9 @@ public:
         return glm::normalize(normalMatrix * baseNormal);
     }
 
-    void Draw(Shader &shader)
+    void Draw(Shader &shader, int textureOffset = 0)
     {
-        model.Draw(shader);
+        model.Draw(shader, textureOffset);
     }
 
 private:
@@ -78,8 +78,8 @@ public:
 
         glGenTextures(1, &texReflect);
         glBindTexture(GL_TEXTURE_2D, texReflect);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, REFLECT_RESOLUTION_X, REFLECT_RESOLUTION_Y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, REFLECT_RESOLUTION_X, REFLECT_RESOLUTION_Y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         GLuint rboDepth;
@@ -106,12 +106,6 @@ public:
             return;
         }       
         reflectPlanes.push_back(reflectPlane);
-
-        // update texture offset
-        for(int i = 0; i < reflectPlane.model.meshes.size(); i++)
-        {
-            textureOffset = max(textureOffset, (GLuint)(reflectPlane.model.meshes[i].textures.size()));
-        }
     }
 
     void removeReflectPlane(int index)
@@ -125,7 +119,6 @@ public:
     void clear()
     {
         reflectPlanes.clear();
-        textureOffset = 0;
     }
 
     void generateReflection(Camera& camera, LightManager& lightManager, vector<Model>& models)
@@ -133,20 +126,28 @@ public:
         maskShader.use();
         maskShader.setCamera(camera);
         DrawMask();
-        // DebugMask();
+        // DebugMask(texMask);
         reflectShader.use();
         reflectShader.setCamera(camera);
-        lightManager.Apply(reflectShader);
+        lightManager.Attach(reflectShader);
         DrawReflect(models);
-        DebugMask();
+        // DebugMask(texReflect);
     }
 
-    void Draw(Shader &shader)
+    void Draw(Shader &shader, int textureOffset = 0)
     {
+        glDisable(GL_BLEND);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glActiveTexture(GL_TEXTURE0 + textureOffset);
+        glBindTexture(GL_TEXTURE_2D, texReflect);
+        shader.setInt("texture_reflect", textureOffset);
         for (int i = 0; i < reflectPlanes.size(); i++)
         {
-            reflectPlanes[i].Draw(shader);
+            reflectPlanes[i].Draw(shader, textureOffset + 1);
         }
+
+        glEnable(GL_BLEND);
     }
 
 private:
@@ -160,8 +161,6 @@ private:
     Shader debugShader;
     GLuint framebuffer, planeDataBuffer;
     GLuint texMask, texReflect;
-    // To avoid conflict with mesh textures, we bind texMask and texReflect at GL_TEXTURE0 + textureOffset 
-    GLuint textureOffset = 0;
     // debug
     ScreenQuad debugQuad;
 
@@ -192,7 +191,7 @@ private:
         // set framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glClear(GL_DEPTH_BUFFER_BIT);
-        glClearTexImage(texReflect, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glClearTexImage(texReflect, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texReflect, 0);
 
         // generate reflect plane data
@@ -211,25 +210,29 @@ private:
 
         // set uniforms    
         reflectShader.setUint("GL_Num_ReflectPlane", reflectPlanes.size());
-        glActiveTexture(GL_TEXTURE0 + textureOffset);
-        glBindTexture(GL_TEXTURE_2D, texMask);
-        reflectShader.setInt("texture_mask", textureOffset);
         glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texMask);
+        reflectShader.setInt("texture_mask", 0);
 
         // render reflection
         for(int i = 0; i < models.size(); i++)
         {
-            models[i].Draw(reflectShader);
+            models[i].Draw(reflectShader, 1);// texture unit 0 is for mask
         }
+
+        // generate mipmap for texReflect
+        glBindTexture(GL_TEXTURE_2D, texReflect);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void DebugMask()
+    void DebugMask(GLuint texture)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         debugShader.use();
-        debugQuad.setTexture(texReflect);
+        debugQuad.setTexture(texture);
         debugQuad.Draw(debugShader);
     }
 };

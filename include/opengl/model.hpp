@@ -39,7 +39,7 @@ public:
     bool flip;
 
     // constructor, expects a filepath to a 3D model.
-    Model(string const &path, bool flip = false) : position(glm::vec3(0)), scale(glm::vec3(1)), rotation(glm::quat(1,0,0,0)), flip(flip)
+    Model(string const &path, bool flip = true) : position(glm::vec3(0)), scale(glm::vec3(1)), rotation(glm::quat(1,0,0,0)), flip(flip)
     {
         loadModel(path);
     }
@@ -59,14 +59,14 @@ public:
     }
 
     // draws the model, and thus all its meshes
-    void Draw(Shader &shader)
+    void Draw(Shader &shader, int textureOffset = 0)
     {
         // model transformation
         shader.setMat4("model", getModelMatrix());
 
         // draw each mesh
         for(unsigned int i = 0; i < meshes.size(); i++)
-            meshes[i].Draw(shader);
+            meshes[i].Draw(shader, textureOffset);
     }
     
 private:

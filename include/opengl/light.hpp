@@ -6,6 +6,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
+#include <opengl/shader.hpp>
+
 #define MAX_LIGHTS 10
 #define PI 3.14159265359
 
@@ -115,7 +117,7 @@ public:
         }
     }
 
-    void Apply(Shader &shader)
+    void Attach(Shader &shader)
     {
         // set uniforms
         shader.setVec3("GL_AmbientLight", ambientLight);
@@ -129,6 +131,7 @@ public:
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pointLightBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spotLightBuffer);
     }
+
 private:
     DirectionalLight directionalLight;
     glm::vec3 ambientLight;

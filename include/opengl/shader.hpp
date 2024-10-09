@@ -115,6 +115,7 @@ public:
         setMat4("projection", projection);
         setMat4("view", view);
         setVec3("cameraPos", camera.Position);
+        setVec2("screenResolution", camera.resolution);
     }
     // utility uniform functions
     // ------------------------------------------------------------------------

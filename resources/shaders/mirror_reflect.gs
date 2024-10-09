@@ -19,13 +19,13 @@ in vec3 WorldPos[];
 out vec2 gTexCoords;
 out vec3 gNormal;
 out vec3 gWorldPos;
-out vec2 screenCoords;
 out float maskId;
 
 uniform uint GL_Num_ReflectPlane;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec3 cameraPos;
 
 void main()
 {
@@ -39,6 +39,9 @@ void main()
     {
         vec3 pos = GL_PlaneData[i].position.xyz;
         vec3 normal = GL_PlaneData[i].normal.xyz;
+        if(dot(cameraPos - pos, normal) < 0)
+            continue;
+
         float d0 = dot(v0 - pos, normal);
         float d1 = dot(v1 - pos, normal);
         float d2 = dot(v2 - pos, normal);
@@ -51,7 +54,6 @@ void main()
         gTexCoords = TexCoords[0];
         gNormal = Normal[0];
         gWorldPos = WorldPos[0];
-        screenCoords = (gl_Position.xy / gl_Position.w + vec2(1.0)) / 2;
         maskId = i;
         EmitVertex();
 
@@ -61,7 +63,6 @@ void main()
         gTexCoords = TexCoords[1];
         gNormal = Normal[1];
         gWorldPos = WorldPos[1];
-        screenCoords = (gl_Position.xy / gl_Position.w + vec2(1.0)) / 2;
         maskId = i;
         EmitVertex();
 
@@ -71,7 +72,6 @@ void main()
         gTexCoords = TexCoords[2];
         gNormal = Normal[2];
         gWorldPos = WorldPos[2];
-        screenCoords = (gl_Position.xy / gl_Position.w + vec2(1.0)) / 2;
         maskId = i;
         EmitVertex();
         EndPrimitive();
