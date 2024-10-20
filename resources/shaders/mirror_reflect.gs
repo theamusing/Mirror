@@ -1,16 +1,9 @@
 #version 460 core
+#extension GL_ARB_shading_language_include : require
+#include "/include/reflectPlane.glsl"
 
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 30) out;
-
-struct PlaneData{
-    vec4 position;
-    vec4 normal;
-};
-
-layout(std430, binding = 2) buffer GL_PLANEDATA_BUFFER{
-    PlaneData GL_PlaneData[];
-};
 
 in vec2 TexCoords[];
 in vec3 Normal[];
@@ -21,7 +14,6 @@ out vec3 gNormal;
 out vec3 gWorldPos;
 out float maskId;
 
-uniform uint GL_Num_ReflectPlane;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -37,8 +29,8 @@ void main()
 
     for(int i = 0; i < GL_Num_ReflectPlane; i++)
     {
-        vec3 pos = GL_PlaneData[i].position.xyz;
-        vec3 normal = GL_PlaneData[i].normal.xyz;
+        vec3 pos = GL_ReflectPlane[i].position.xyz;
+        vec3 normal = GL_ReflectPlane[i].normal.xyz;
         if(dot(cameraPos - pos, normal) < 0)
             continue;
 

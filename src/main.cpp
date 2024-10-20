@@ -93,29 +93,42 @@ int main()
 
     // load models
     // -----------
-    Model ourModel("../resources/models/bunny/bunny.obj", false);
-    ourModel.scale = glm::vec3(8,8,8);
-    ourModel.position = glm::vec3(0.0f, -0.5f, 0.0f);
+    Model ourModel("../resources/models/wooden-stylised-carriage/040404.fbx", false);
+    ourModel.scale = glm::vec3(0.01,0.01,0.01);
+    ourModel.position = glm::vec3(0.0f, -1.5f, 2.0f);
+    ourModel.rotateAxisAngle(glm::vec3(0.0f, 1.0f, 0.0f), 75.0f);
+
+    Model frame("../resources/models/mirror/classical-mirror/source/frame.fbx", false);
+    frame.position = glm::vec3(-5 * sin(glm::radians(0.0f)), 0.1f, -5 * cos(glm::radians(0.0f)));
+    frame.rotateAxisAngle(glm::vec3(0.0f, 1.0f, 0.0f), 0);
+    frame.scale = glm::vec3(0.05f, 0.05f, 0.05f);
+
     vector<Model> modelList;
     modelList.push_back(ourModel);
+    modelList.push_back(frame);
 
     // generate mirrors
     // ---------------
     ReflectPlaneManager ourReflectPlaneManager;
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 4; i++)
     {
-        ReflectPlane mirror("../resources/models/mirror/mirror_a.glb", glm::vec3(0.0f, 0.0f, 1.0f), false);
-        float angle = i * 36.0f;
-        mirror.model.position = glm::vec3(-3 * sin(glm::radians(angle)), -0.5f, -3 * cos(glm::radians(angle)));
-        mirror.model.rotateAxisAngle(glm::vec3(0.0f, 1.0f, 0.0f), angle);
+        ReflectPlane mirror("../resources/models/mirror/classical-mirror/source/mirror.fbx", glm::vec3(0.0f, 0.0f, 1.0f), false);
+        mirror.model.position = glm::vec3(i * 1.0f - 2.0f, -0.1f, -2.0f);
         mirror.model.scale = glm::vec3(0.02f, 0.02f, 0.02f);
+        mirror.color = glm::vec3(i*0.25 + 0.75);
+        mirror.blurLevel = i * 0.7f;
         ourReflectPlaneManager.addReflectPlane(mirror);
+
+        Model frame("../resources/models/mirror/classical-mirror/source/frame.fbx", false);
+        frame.position = glm::vec3(i * 1.0f - 2.0f, -0.1f, -2.0f);
+        frame.scale = glm::vec3(0.02f, 0.02f, 0.02f);
+        modelList.push_back(frame);
     }
 
     // generate a light source
     LightManager ourLightManager;
-    ourLightManager.addPointLight(glm::vec3(2.0f, 0.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f);
-    ourLightManager.addSpotLight(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.6f, 5.0f, 15.0f);
+    // ourLightManager.addPointLight(glm::vec3(2.0f, 0.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f);
+    // ourLightManager.addSpotLight(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.6f, 5.0f, 15.0f);
 
     // generate skybox
     SkyBox ourSkyBox;

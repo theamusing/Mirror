@@ -1,16 +1,20 @@
 #ifndef REFLECTPLANE_GLSL
 #define REFLECTPLANE_GLSL
 
-struct ReflectPlane {
+#define MAX_REFLECT_NUM 3
+
+struct GL_PlaneData {
     vec4 position;
     vec4 normal;
-    uint reflectionDepth;
-}
+    vec4 color;
+    float reflectRate;
+    float blurLevel;
+};
 
 layout(std430, binding = 2) buffer GL_REFLECTPLANE_BUFFER
 {
-    ReflectPlane GL_ReflectPlane[];
-}
+    GL_PlaneData GL_ReflectPlane[];
+};
 
 uniform uint GL_Num_ReflectPlane;
 

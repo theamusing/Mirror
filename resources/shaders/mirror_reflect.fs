@@ -1,24 +1,15 @@
 #version 460 core
 #extension GL_ARB_shading_language_include : require
 #include "/include/light.glsl"
+#include "/include/reflectPlane.glsl"
 
 layout(location = 0) out vec4 FragColor;
-
-struct PlaneData{
-    vec4 position;
-    vec4 normal;
-};
-
-layout(std430, binding = 2) buffer GL_PLANEDATA_BUFFER{
-    PlaneData GL_PlaneData[];
-};
 
 in vec2 gTexCoords;
 in vec3 gNormal;
 in vec3 gWorldPos;
 in float maskId;
 
-uniform uint GL_Num_ReflectPlane;
 uniform sampler2D texture_diffuse1;
 // uniform sampler2D texture_specular1;
 uniform sampler2D texture_mask;
@@ -34,7 +25,7 @@ void main()
         discard;
     int planeId = int(id + 0.5);
     planeId = clamp(planeId, 0, int(GL_Num_ReflectPlane)-1);
-    vec3 viewPos = cameraPos - 2 * dot(cameraPos - GL_PlaneData[planeId].position.xyz, GL_PlaneData[planeId].normal.xyz) * GL_PlaneData[planeId].normal.xyz;
+    vec3 viewPos = cameraPos - 2 * dot(cameraPos - GL_ReflectPlane[planeId].position.xyz, GL_ReflectPlane[planeId].normal.xyz) * GL_ReflectPlane[planeId].normal.xyz;
 
     vec3 norm = normalize(gNormal);
     vec3 kd = vec3(texture(texture_diffuse1, gTexCoords));

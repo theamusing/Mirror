@@ -29,7 +29,10 @@ class ReflectPlane
 {
 public:
     Model model;
-
+    glm::vec3 color = glm::vec3(1.0f);
+    float reflectRate = 1.0f;
+    float blurLevel = 0;
+    
     ReflectPlane(string const &path, glm::vec3 normal, bool flip = true) : model(path, flip), baseNormal(glm::normalize(normal)) {}
     ReflectPlane(string const &path, bool flip = true) : model(path, flip)
     {
@@ -136,27 +139,28 @@ public:
 
     void Draw(Shader &shader, int textureOffset = 0)
     {
-        glDisable(GL_BLEND);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, planeDataBuffer);
         glActiveTexture(GL_TEXTURE0 + textureOffset);
         glBindTexture(GL_TEXTURE_2D, texReflect);
         shader.setInt("texture_reflect", textureOffset);
         for (int i = 0; i < reflectPlanes.size(); i++)
         {
+            shader.setUint("planeId", i);
             reflectPlanes[i].Draw(shader, textureOffset + 1);
         }
-
-        glEnable(GL_BLEND);
     }
 
 private:
-    struct PlaneData
+    struct alignas(16) PlaneData
     {
         glm::vec4 position;
         glm::vec4 normal;
+        glm::vec4 color;
+        float reflectRate;
+        float blurLevel;
     };
     vector<ReflectPlane> reflectPlanes;
+    vector<PlaneData> planeData;
     Shader maskShader, reflectShader;
     Shader debugShader;
     GLuint framebuffer, planeDataBuffer;
@@ -195,12 +199,15 @@ private:
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texReflect, 0);
 
         // generate reflect plane data
-        vector<PlaneData> planeData;
+        planeData.clear();
         for (int i = 0; i < reflectPlanes.size(); i++)
         {
             PlaneData data;
             data.position = glm::vec4(reflectPlanes[i].model.position, 1.0f);
             data.normal = glm::vec4(reflectPlanes[i].getNormal(), 0.0f);
+            data.color = glm::vec4(reflectPlanes[i].color, 1.0f);
+            data.reflectRate = reflectPlanes[i].reflectRate;
+            data.blurLevel = reflectPlanes[i].blurLevel;
             planeData.push_back(data);
         }
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, planeDataBuffer);
