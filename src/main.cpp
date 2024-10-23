@@ -24,7 +24,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(-0.5f, 0.0f, 0.5f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -124,7 +124,6 @@ int main()
         frame.scale = glm::vec3(0.02f, 0.02f, 0.02f);
         modelList.push_back(frame);
     }
-
     // generate a light source
     LightManager ourLightManager;
     // ourLightManager.addPointLight(glm::vec3(2.0f, 0.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f);
