@@ -1,4 +1,4 @@
-# Model Volumetric Renderer
+# Multiple Mirrors
 ![mirror](./resources/images/1.png)
 ## how to build
 Please check [this repo](https://github.com/theamusing/OpenGL_Template). It's exactly the same.
@@ -48,7 +48,7 @@ ReflectPlane mirror(
     // To be honest it is messy and hard to manage, but I'm just too lazy to deal with that >_<
 ```
 
-## Tutorial
+## tutorial
 This section contains a tutorial about how to generate the reflection for multiple mirrors.
 It is a really easy one. Here we go~
 
@@ -110,4 +110,29 @@ Finally, with the reflection texture, we can render our mirror.
 
 <img src="./resources/images/4.png" alt="conflict" width="50%" height="50%">
 
-TO BE CONTINUED
+To render image in the mirror, we need to sample from the reflection texture we just generated. Also, we need to consider global illumination(in this case, we use skybox).
+Then we can blend this two colors using the alpha value of reflection texture.
+(alpha == 0 : nothing)
+(alpha == 1 : reflection)
+Finally we blend this color with the mirror's onw color using reflect rate to get the result.
+```
+    // in fragment shader
+    base_color = calculate_lighting(uv) // lighting on mirror itself
+    reflection_color = sample_from_reflection_texture(uv, blur_level)
+    environment_color = sample_from_skybox(uv, blur_level)
+    reflection_color = mix(reflection_color, environment_color, reflection_color.a)
+    result = mix(reflection_color, environment_color, reflect_Rate)
+```
+
+This repository provides [mirror.vs](./resources/shaders/mirror.vs) and [mirror.fs](./resources/shaders/mirror.fs) for rendering mirrors. You can also use your own shader as long as the reflection texture is passed to it. 
+
+## tips
++ You should not render mirror to mask if the direction of mirror is not towards your camera. 
+```
+    dot(mirror_normal, -camera_forward) < 0
+```
+
+## future works
++ This repository didn't imply normal map, so the reflect effect is not so real. It is easy to use normal map and modify how we sample reflection textures. The point here is we do not need to make any changes on reflection texture. Just modify the way we use it.
+
++ Mirrors in this repository only support 1 reflection. To support a multi reflection mirror, we need to record the reflect order in mask, which requires a map from a reflection queue to a float. And also we need to record the depth of each reflection area to make sure the reflections are rendered in correct order.

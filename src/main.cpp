@@ -116,6 +116,7 @@ int main()
         mirror.model.position = glm::vec3(i * 1.0f - 2.0f, -0.1f, -2.0f);
         mirror.model.scale = glm::vec3(0.02f, 0.02f, 0.02f);
         mirror.color = glm::vec3(i*0.25 + 0.75);
+        // mirror.color = glm::vec3(1.0,0.5,0.5);
         mirror.blurLevel = i * 0.7f;
         ourReflectPlaneManager.addReflectPlane(mirror);
 
